@@ -15,6 +15,8 @@ import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 
+import com.google.android.gms.ads.InterstitialAd;
+
 
 /**
  * Created by monirozzamanroni on 6/21/2019.
@@ -27,6 +29,7 @@ public class backgroudRunningService extends Service {
     Camera.Parameters parameters;
     int count = 0;
     private MediaPlayer player;
+    private InterstitialAd mInterstitialAd = new InterstitialAd(this);
 
     @Override
     public void onCreate() {
@@ -114,6 +117,7 @@ public class backgroudRunningService extends Service {
         player.setLooping(true);
         player.setVolume(0f, 0f);
         player.start();
+
         //Toast.makeText(backgroudRunningService.this, "Background Service on", Toast.LENGTH_LONG).show();
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
