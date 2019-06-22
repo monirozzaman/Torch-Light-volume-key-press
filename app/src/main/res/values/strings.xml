@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">Torch Light-Volume Button</string>
+    <string name="app_name">Torch Light</string>
     <string name="copyright">Copyright &#169; IT Village Ltd. </string>
+    <string name="enableModeToast">Enable Torch Light Mode \n Press Volume Key </string>
 </resources>
