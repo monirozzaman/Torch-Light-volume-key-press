@@ -15,6 +15,9 @@
         android:roundIcon="@mipmap/app_icon_2_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-2755327905354399~1917938011" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +29,7 @@
             android:name=".backgroudRunningService"
             android:enabled="true"
             android:exported="true" />
+
     </application>
 
 </manifest>
