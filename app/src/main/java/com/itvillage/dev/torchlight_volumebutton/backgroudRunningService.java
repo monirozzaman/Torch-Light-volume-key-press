@@ -14,7 +14,7 @@ import android.os.PowerManager;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.widget.Toast;
+
 
 /**
  * Created by monirozzamanroni on 6/21/2019.
@@ -24,6 +24,8 @@ public class backgroudRunningService extends Service {
     private static final int NOTIF_ID = 1;
     private static final String NOTIF_CHANNEL_ID = "Channel_Id";
     Camera camera;
+    Camera.Parameters parameters;
+    int count = 0;
     private MediaPlayer player;
 
     @Override
@@ -39,20 +41,55 @@ public class backgroudRunningService extends Service {
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 boolean isScreenOn = powerManager.isScreenOn();
                 if (!isScreenOn) {
+                    /* -------------------- create Toggle Button-------------------------*/
+                    count++;
+                    if (count == 2) {
+                        camera = Camera.open();
+                        parameters = camera.getParameters();
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                        camera.setParameters(parameters);
+                        camera.startPreview();
+                    } else if (count == 4) {
+                        camera = Camera.open();
+                        parameters = camera.getParameters();
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        camera.setParameters(parameters);
+                        camera.stopPreview();
+                        camera.release();
+                        count = 0;
+                    } else {
 
-                    PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-                    PowerManager.WakeLock mWakeLock = pm.newWakeLock((PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "YourServie");
-                    mWakeLock.acquire();
-                    stopService(new Intent(backgroudRunningService.this, backgroudRunningService.class));
-                    Toast.makeText(backgroudRunningService.this, "Torch is off", Toast.LENGTH_LONG).show();
+                    }
+                    /*--------------------- Screen Light On----------------*/
+//                    PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+//                    PowerManager.WakeLock mWakeLock = pm.newWakeLock((PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "YourServie");
+//                    mWakeLock.acquire();
+                    //  stopService(new Intent(backgroudRunningService.this, backgroudRunningService.class));
                 } else {
+                    count++;
+                    if (count == 2) {
+                        camera = Camera.open();
+                        parameters = camera.getParameters();
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                        camera.setParameters(parameters);
+                        camera.startPreview();
+                    } else if (count == 4) {
+                        camera = Camera.open();
+                        parameters = camera.getParameters();
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                        camera.setParameters(parameters);
+                        camera.stopPreview();
+                        camera.release();
+                        count = 0;
+                    } else {
 
-                    stopService(new Intent(backgroudRunningService.this, backgroudRunningService.class));
-                    Toast.makeText(backgroudRunningService.this, "Torch is off", Toast.LENGTH_LONG).show();
+                    }
+
                 }
             }
 
         };
+
         registerReceiver(vReceiver, new IntentFilter("android.media.VOLUME_CHANGED_ACTION"));
     }
 
@@ -77,17 +114,10 @@ public class backgroudRunningService extends Service {
         player.setLooping(true);
         player.setVolume(0f, 0f);
         player.start();
-        Toast.makeText(backgroudRunningService.this, "Torch is On", Toast.LENGTH_LONG).show();
-        camera = Camera.open();
-        Camera.Parameters parameters = camera.getParameters();
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        camera.setParameters(parameters);
-        camera.startPreview();
+        //Toast.makeText(backgroudRunningService.this, "Background Service on", Toast.LENGTH_LONG).show();
         Intent notificationIntent = new Intent(this, MainActivity.class);
-
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
                 notificationIntent, 0);
-
         startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
                 NOTIF_CHANNEL_ID) // don't forget create a notification channel first
                 .setOngoing(true)
@@ -101,12 +131,11 @@ public class backgroudRunningService extends Service {
     @Override
     public void onDestroy() {
         camera = Camera.open();
-        Camera.Parameters parameters = camera.getParameters();
+        parameters = camera.getParameters();
         parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(parameters);
         camera.stopPreview();
         camera.release();
-        Toast.makeText(backgroudRunningService.this, "Torch is off", Toast.LENGTH_LONG).show();
         player.stop();
         super.onDestroy();
     }
