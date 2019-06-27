@@ -5,16 +5,15 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.VolumeProviderCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 
 
 /**
@@ -27,7 +26,7 @@ public class backgroudRunningService extends Service {
     Camera camera;
     Camera.Parameters parameters;
     int count = 0;
-
+    private MediaSessionCompat mediaSession;
     public backgroudRunningService() {
 
         super();
@@ -42,72 +41,52 @@ public class backgroudRunningService extends Service {
     @Override
     public void onCreate() {
         createNotificationC();
-        final BroadcastReceiver vReceiver = new BroadcastReceiver() {
+        mediaSession = new MediaSessionCompat(this, "PlayerService");
+        mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
+                MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mediaSession.setPlaybackState(new PlaybackStateCompat.Builder()
+                .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0) //you simulate a player which plays something.
+                .build());
 
+        //this will only work on Lollipop and up, see https://code.google.com/p/android/issues/detail?id=224134
+        VolumeProviderCompat myVolumeProvider =
+                new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, /*max volume*/100, /*initial volume level*/50) {
+                    @Override
+                    public void onAdjustVolume(int direction) {
+                        if (direction == -1) {
+                            camera = Camera.open();
+                            parameters = camera.getParameters();
+                            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                            camera.setParameters(parameters);
+                            camera.startPreview();
 
-            @Override
-            public void onReceive(Context context, Intent intent) {
+                        }
+                        if (direction == 1) {
 
-                PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-                boolean isScreenOn = powerManager.isScreenOn();
-                if (!isScreenOn) {
-                    //* -------------------- create Toggle Button-------------------------*//*
-                    count++;
-                    if (count == 2) {
-                        camera = Camera.open();
-                        parameters = camera.getParameters();
-                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                        camera.setParameters(parameters);
-                        camera.startPreview();
-                    } else if (count == 4) {
-                        camera = Camera.open();
-                        parameters = camera.getParameters();
-                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        camera.setParameters(parameters);
-                        camera.stopPreview();
-                        camera.release();
-                        count = 0;
-                    } else {
+                            camera = Camera.open();
+                            parameters = camera.getParameters();
+                            parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                            camera.setParameters(parameters);
+                            camera.stopPreview();
+                            camera.release();
+                        }
 
+                /*
+                -1 -- volume down
+                1 -- volume up
+                0 -- volume button released
+                 */
                     }
-                    //*--------------------- Screen Light On----------------*//*
-//                    PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
-//                    PowerManager.WakeLock mWakeLock = pm.newWakeLock((PowerManager.SCREEN_DIM_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "YourServie");
-//                    mWakeLock.acquire();
-                    //  stopService(new Intent(backgroudRunningService.this, backgroudRunningService.class));
-                } else {
-                    count++;
-                    if (count == 2) {
-                        camera = Camera.open();
-                        parameters = camera.getParameters();
-                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-                        camera.setParameters(parameters);
-                        camera.startPreview();
-                    } else if (count == 4) {
-                        camera = Camera.open();
-                        parameters = camera.getParameters();
-                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                        camera.setParameters(parameters);
-                        camera.stopPreview();
-                        camera.release();
-                        count = 0;
-                    } else {
+                };
 
-                    }
-
-                }
-            }
-
-        };
-
-        registerReceiver(vReceiver, new IntentFilter("android.media.VOLUME_CHANGED_ACTION"));
+        mediaSession.setPlaybackToRemote(myVolumeProvider);
+        mediaSession.setActive(true);
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground();
-
         return START_STICKY;
     }
     private void startForeground() {
@@ -138,6 +117,8 @@ public class backgroudRunningService extends Service {
             manager.createNotificationChannel(notificationChannel);
         }
     }
+
+
 }
 
 

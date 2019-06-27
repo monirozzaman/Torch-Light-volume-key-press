@@ -121,6 +121,7 @@ public class MainActivity extends AppCompatActivity {
                     text.setText("Disable Torch Mode ?");
                     onoff.setChecked(true);
                     startService(new Intent(MainActivity.this, backgroudRunningService.class));
+
                     //Custom Toast
                     LayoutInflater li = getLayoutInflater();
                     //Getting the View object as defined in the customtoast.xml file
