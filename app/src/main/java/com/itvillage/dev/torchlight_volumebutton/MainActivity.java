@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 50;
     Switch onoff;
     private Dialog dialog;
-    private InterstitialAd mInterstitialAd, mInterstitialAd2;
+    private InterstitialAd mInterstitialAd2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         MobileAds.initialize(this,
                 "ca-app-pub-5203976193543346~5455133438");
-// Interstitial Ads One
-        mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-5203976193543346/1763300435");
-        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
 // Interstitial Ads Two
         mInterstitialAd2 = new InterstitialAd(this);
         mInterstitialAd2.setAdUnitId("ca-app-pub-5203976193543346/6316611356");
@@ -63,11 +60,7 @@ public class MainActivity extends AppCompatActivity {
                         TextView text = (TextView) dialog.findViewById(R.id.text_dialog);
                         text.setText("Disable Torch Mode ?");
                         startService(new Intent(MainActivity.this, backgroudRunningService.class));
-                        if (mInterstitialAd.isLoaded()) {
-                            mInterstitialAd.show();
-                        } else {
-                            Log.d("TAG", "The interstitial wasn't loaded yet.");
-                        }
+
                         //Custom Toast
                         LayoutInflater li = getLayoutInflater();
                         //Getting the View object as defined in the customtoast.xml file
@@ -75,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         LinearLayout linearLayout = layout.findViewById(R.id.custom_toast_layout);
                         TextView textView = layout.findViewById(R.id.custom_toast_message);
                         linearLayout.setBackgroundColor(Color.parseColor("#0da62c"));
-                        textView.setText("Enable Torch Light Mode.. \n Press Volume Key");
+                        textView.setText("Enable Torch Light Mode.. \nDouble Press Volume Key");
                         //Creating the Toast object
                         Toast toast = new Toast(getApplicationContext());
                         toast.setDuration(Toast.LENGTH_SHORT);
@@ -129,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
                     LinearLayout linearLayout = layout.findViewById(R.id.custom_toast_layout);
                     TextView textView = layout.findViewById(R.id.custom_toast_message);
                     linearLayout.setBackgroundColor(Color.parseColor("#0da62c"));
-                    textView.setText("Enable Torch Light Mode.. \n Press Volume Key");
+                    textView.setText("Enable Torch Light Mode.. \nDouble Press Volume Key");
                     //Creating the Toast object
                     Toast toast = new Toast(getApplicationContext());
                     toast.setDuration(Toast.LENGTH_SHORT);
@@ -142,4 +135,5 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
+
 }
