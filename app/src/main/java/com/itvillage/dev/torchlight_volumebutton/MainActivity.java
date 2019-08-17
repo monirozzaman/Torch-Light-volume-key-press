@@ -1,24 +1,20 @@
 package com.itvillage.dev.torchlight_volumebutton;
 
 import android.Manifest;
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetDialog;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.CompoundButton;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
@@ -28,25 +24,21 @@ import com.google.android.gms.ads.MobileAds;
 public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_REQUEST = 50;
     Switch onoff;
-    private Dialog dialog;
+    private BottomSheetDialog bottomSheetDialog;
     private InterstitialAd mInterstitialAd2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        dialog = new Dialog(MainActivity.this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setCancelable(false);
-        dialog.setContentView(R.layout.custom_dialog);
-        onoff = (Switch) dialog.findViewById(R.id.switch1);
+        onoff = (Switch) findViewById(R.id.switch1);
 
         MobileAds.initialize(this,
-                "ca-app-pub-5203976193543346~5455133438");
+                getString(R.string.appId));
 
-// Interstitial Ads Two
+        // Interstitial Ads Two
         mInterstitialAd2 = new InterstitialAd(this);
-        mInterstitialAd2.setAdUnitId("ca-app-pub-5203976193543346/6316611356");
+        mInterstitialAd2.setAdUnitId(getString(R.string.interstitial_2));
         mInterstitialAd2.loadAd(new AdRequest.Builder().build());
         boolean isEnabled = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED;
@@ -57,52 +49,39 @@ public class MainActivity extends AppCompatActivity {
             onoff.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
-                        TextView text = (TextView) dialog.findViewById(R.id.text_dialog);
-                        text.setText("Disable Torch Mode ?");
-                        startService(new Intent(MainActivity.this, backgroudRunningService.class));
-
-                        //Custom Toast
-                        LayoutInflater li = getLayoutInflater();
-                        //Getting the View object as defined in the customtoast.xml file
-                        View layout = li.inflate(R.layout.customtoast, (ViewGroup) findViewById(R.id.custom_toast_layout));
-                        LinearLayout linearLayout = layout.findViewById(R.id.custom_toast_layout);
-                        TextView textView = layout.findViewById(R.id.custom_toast_message);
-                        linearLayout.setBackgroundColor(Color.parseColor("#0da62c"));
-                        textView.setText("Enable Torch Light Mode.. \nDouble Press Volume Key");
-                        //Creating the Toast object
-                        Toast toast = new Toast(getApplicationContext());
-                        toast.setDuration(Toast.LENGTH_SHORT);
-                        toast.setView(layout);//setting the view of custom toast layout
-                        toast.show();
-                        dialog.show();
-                    } else {
-                        TextView text = (TextView) dialog.findViewById(R.id.text_dialog);
-                        text.setText("Enable Torch Mode ?");
-                        stopService(new Intent(MainActivity.this, backgroudRunningService.class));
                         if (mInterstitialAd2.isLoaded()) {
+                            ServiceOprn();
                             mInterstitialAd2.show();
                         } else {
+                            ServiceOprn();
                             Log.d("TAG", "The interstitial wasn't loaded yet.");
                         }
-                        //Custom Toast
-                        LayoutInflater li = getLayoutInflater();
-                        //Getting the View object as defined in the customtoast.xml file
-                        View layout = li.inflate(R.layout.customtoast, (ViewGroup) findViewById(R.id.custom_toast_layout));
-                        LinearLayout linearLayout = layout.findViewById(R.id.custom_toast_layout);
-                        TextView textView = layout.findViewById(R.id.custom_toast_message);
-                        linearLayout.setBackgroundColor(Color.parseColor("#e12a36"));
-                        textView.setText("Disable Torch Light Mode");
-                        //Creating the Toast object
-                        Toast toast = new Toast(getApplicationContext());
-                        toast.setDuration(Toast.LENGTH_SHORT);
-                        toast.setView(layout);//setting the view of custom toast layout
-                        toast.show();
-                        dialog.show();
+
+                    } else {
+                        stopService(new Intent(MainActivity.this, backgroudRunningService.class));
+                        ImageView imageView = findViewById(R.id.a);
+                        Switch aSwitch = findViewById(R.id.switch1);
+                        imageView.setBackgroundColor(Color.parseColor("#fd5a65"));
+                        aSwitch.setBackgroundColor(Color.parseColor("#68da5f6a"));
+                        Toast.makeText(getApplicationContext(), "Mode Disable", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
         }
 
+        // Call showManu()
+        //showManu();
+    }
+
+    private void ServiceOprn() {
+        // //Servives Open
+        startService(new Intent(MainActivity.this, backgroudRunningService.class));
+        //Notify
+        ImageView imageView = findViewById(R.id.a);
+        Switch aSwitch = findViewById(R.id.switch1);
+        imageView.setBackgroundColor(Color.parseColor("#FFA2CF75"));
+        aSwitch.setBackgroundColor(Color.parseColor("#FFA2CF75"));
+        Toast.makeText(getApplicationContext(), "Mode Enable", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -110,30 +89,23 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode) {
             case CAMERA_REQUEST:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    TextView text = (TextView) dialog.findViewById(R.id.text_dialog);
-                    text.setText("Disable Torch Mode ?");
-                    onoff.setChecked(true);
-                    startService(new Intent(MainActivity.this, backgroudRunningService.class));
-
-                    //Custom Toast
-                    LayoutInflater li = getLayoutInflater();
-                    //Getting the View object as defined in the customtoast.xml file
-                    View layout = li.inflate(R.layout.customtoast, (ViewGroup) findViewById(R.id.custom_toast_layout));
-                    LinearLayout linearLayout = layout.findViewById(R.id.custom_toast_layout);
-                    TextView textView = layout.findViewById(R.id.custom_toast_message);
-                    linearLayout.setBackgroundColor(Color.parseColor("#0da62c"));
-                    textView.setText("Enable Torch Light Mode.. \nDouble Press Volume Key");
-                    //Creating the Toast object
-                    Toast toast = new Toast(getApplicationContext());
-                    toast.setDuration(Toast.LENGTH_SHORT);
-                    toast.setView(layout);//setting the view of custom toast layout
-                    toast.show();
-                    dialog.show();
                 } else {
                     Toast.makeText(MainActivity.this, "Permission Denied for the Camera", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
+    }
+
+    /*
+    * App Menu Bottom Sheet
+    * */
+    public void showManu() {
+        View view = getLayoutInflater().inflate(R.layout.bottom_sheet, null);
+
+        bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(view);
+        bottomSheetDialog.show();
+
     }
 
 }

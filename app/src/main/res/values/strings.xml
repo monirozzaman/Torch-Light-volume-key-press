@@ -2,4 +2,11 @@
     <string name="app_name">Torch Light</string>
     <string name="copyright">Copyright &#169; IT Village Ltd. </string>
     <string name="enableModeToast">Enable Torch Light Mode \n Press Volume Key </string>
+    <string name="manuTitle">Menu</string>
+    <string name="appIdDefult">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="appId">ca-app-pub-5203976193543346~5455133438</string>
+    <string name="interstitialDefult">ca-app-pub-3940256099942544/1033173712</string>
+    <string name="interstitial_1">ca-app-pub-5203976193543346/6316611356</string>
+    <string name="interstitial_2">ca-app-pub-5203976193543346/1763300435</string>
+
 </resources>
