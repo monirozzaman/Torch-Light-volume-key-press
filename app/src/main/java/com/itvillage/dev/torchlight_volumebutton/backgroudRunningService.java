@@ -21,6 +21,7 @@ import android.util.Log;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.InterstitialAd;
+import com.google.android.gms.ads.MobileAds;
 
 
 /**
@@ -54,11 +55,17 @@ public class backgroudRunningService extends Service {
 
     @Override
     public void onCreate() {
+
+        MobileAds.initialize(this,
+                getString(R.string.appId));
         // Interstitial Ads One
         mInterstitialAd = new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-5203976193543346/1763300435");
+        mInterstitialAd.setAdUnitId(getString(R.string.interstitial_1));
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+
         createNotificationC();
+
         mediaSession = new MediaSessionCompat(this, "PlayerService");
         mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS |
                 MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
@@ -66,48 +73,61 @@ public class backgroudRunningService extends Service {
                 .setState(PlaybackStateCompat.STATE_PLAYING, 0, 0) //you simulate a player which plays something.
                 .build());
         audioManager = (AudioManager) getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
+        camera = Camera.open();
+        parameters = camera.getParameters();
         //this will only work on Lollipop and up, see https://code.google.com/p/android/issues/detail?id=224134
         VolumeProviderCompat myVolumeProvider =
                 new VolumeProviderCompat(VolumeProviderCompat.VOLUME_CONTROL_RELATIVE, 100, volume) {
                     @Override
                     public void onAdjustVolume(int direction) {
+                        //volume down key
                         if (direction == -1) {
-                            setCurrentVolume(getCurrentVolume() - 3);
+                            setCurrentVolume(getCurrentVolume() - 1);
                             count++;
                             if (count == 2) {
+                                if (mInterstitialAd.isLoaded()) {
 
-                                camera = Camera.open();
-                                parameters = camera.getParameters();
+                                    mInterstitialAd.show();
+                                } else {
+                                    Log.d("TAG", "The interstitial wasn't loaded yet.");
+                                }
+                                /*Torch Mode On*/
                                 parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
                                 camera.setParameters(parameters);
                                 camera.startPreview();
                                 count = 0;
+
                             }
 
                             new Handler().postDelayed(new Runnable() {
                                 public void run() {
                                     count = 0;
                                 }
-                            }, 1000);
+                            }, 100);
                         }
+                        //volume up key
                         if (direction == 1) {
-                            setCurrentVolume(getCurrentVolume() + 3);
+
+                            setCurrentVolume(getCurrentVolume() + 1);
                             count++;
                             if (count == 2) {
-                                camera = Camera.open();
-                                parameters = camera.getParameters();
-                                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                                camera.setParameters(parameters);
-                                camera.stopPreview();
-                                camera.release();
-                                count = 0;
+
+                                if (parameters.getFlashMode().equals(android.hardware.Camera.Parameters.FLASH_MODE_TORCH)) {
+
+                                    /*Torch Mode Off*/
+                                    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                                    camera.setParameters(parameters);
+                                    camera.startPreview();
+                                    count = 0;
+                                }
+
                             }
 
                             new Handler().postDelayed(new Runnable() {
                                 public void run() {
                                     count = 0;
                                 }
-                            }, 1000);
+                            }, 100);
 
 
                         }
@@ -117,36 +137,21 @@ public class backgroudRunningService extends Service {
                     //   1 -- volume up
                     //   0 -- volume button released
 
-
                 };
 
         mediaSession.setPlaybackToRemote(myVolumeProvider);
         mediaSession.setActive(true);
-        handler = new Handler();
-        r = new Runnable() {
-            public void run() {
-                if (mInterstitialAd.isLoaded()) {
-                    mInterstitialAd.show();
-                } else {
-                    Log.d("TAG", "The interstitial wasn't loaded yet.");
-                }
-                handler.postDelayed(r, 1800000);
-            }
-        };
-        handler.post(r);
-
-
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         startForeground();
-
         return START_STICKY;
     }
 
     private void startForeground() {
+
         Intent notificationIntent = new Intent(this, MainActivity.class);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
@@ -164,6 +169,12 @@ public class backgroudRunningService extends Service {
 
     @Override
     public void onDestroy() {
+        /*
+        * kill Background whole process
+        * */
+        int pid = android.os.Process.myPid();
+        android.os.Process.killProcess(pid);
+
         super.onDestroy();
     }
 
